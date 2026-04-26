@@ -114,7 +114,7 @@ def categories_keyboard(drive_key: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for category_key, category in catalog.get_categories(drive_key).items():
         builder.button(text=category["name"], callback_data=f"category:{drive_key}:{category_key}")
-    builder.button(text="⬅️ Назад к выбору ЧП", callback_data="menu:drives")
+    builder.button(text="⬅️ Назад к выбору преобразователя", callback_data="menu:drives")
     builder.adjust(2, 1)
     return builder.as_markup()
 
@@ -124,7 +124,7 @@ def result_keyboard(drive_key: str) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="🔁 Ввести другой код", callback_data="repeat")
     builder.button(text="📁 Сменить Alarm/Fault", callback_data=f"change_category:{drive_key}")
-    builder.button(text="🏭 Сменить ЧП", callback_data="menu:drives")
+    builder.button(text="🏭 Сменить преобразователь", callback_data="menu:drives")
     builder.adjust(1, 1, 1)
     return builder.as_markup()
 
@@ -171,12 +171,12 @@ def render_not_found(
 async def show_main_menu(target: Message | CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     text = (
-        "<b>Справочник ошибок ЧП</b>\n\n"
-        "1. Выбери частотный преобразователь\n"
+        "<b>Справочник ошибок преобразователей</b>\n\n"
+        "1. Выбери преобразователь\n"
         "2. Выбери тип события: Alarm или Fault\n"
         "3. Введи код вручную\n\n"
         "После выбора типа можно вводить либо полный код (<code>A01006</code>), "
-        "либо только цифры (<code>1006</code>)."
+        "либо только цифры (<code>1006</code>).\n\n"
     )
 
     if isinstance(target, Message):
@@ -206,12 +206,12 @@ async def cb_menu_drives(callback: CallbackQuery, state: FSMContext) -> None:
 async def cb_select_drive(callback: CallbackQuery, state: FSMContext) -> None:
     drive_key = callback.data.split(":", maxsplit=1)[1]
     if not catalog.drive_exists(drive_key):
-        await callback.answer("Такой ЧП не найден", show_alert=True)
+        await callback.answer("Такой преобразователь не найден", show_alert=True)
         return
 
     await state.update_data(drive_key=drive_key)
     await callback.message.edit_text(
-        f"Выбран ЧП: <b>{escape_html(catalog.get_drive_name(drive_key))}</b>\n\nТеперь выбери тип события:",
+        f"Выбран преобразователь: <b>{escape_html(catalog.get_drive_name(drive_key))}</b>\n\nТеперь выбери тип события:",
         reply_markup=categories_keyboard(drive_key),
     )
     await callback.answer()
@@ -227,7 +227,7 @@ async def cb_change_category(callback: CallbackQuery, state: FSMContext) -> None
     await state.update_data(drive_key=drive_key)
     await state.set_state(None)
     await callback.message.edit_text(
-        f"ЧП: <b>{escape_html(catalog.get_drive_name(drive_key))}</b>\n\nВыбери тип события:",
+        f"Преобразователь: <b>{escape_html(catalog.get_drive_name(drive_key))}</b>\n\nВыбери тип события:",
         reply_markup=categories_keyboard(drive_key),
     )
     await callback.answer()
@@ -238,7 +238,7 @@ async def cb_select_category(callback: CallbackQuery, state: FSMContext) -> None
     _, drive_key, category_key = callback.data.split(":", maxsplit=2)
 
     if not catalog.drive_exists(drive_key):
-        await callback.answer("ЧП не найден", show_alert=True)
+        await callback.answer("Преобразователь не найден", show_alert=True)
         return
 
     categories = catalog.get_categories(drive_key)
@@ -253,7 +253,7 @@ async def cb_select_category(callback: CallbackQuery, state: FSMContext) -> None
     category_name = catalog.get_category_name(drive_key, category_key)
     prefix = catalog.get_category_prefix(drive_key, category_key)
     await callback.message.edit_text(
-        f"ЧП: <b>{escape_html(drive_name)}</b>\n"
+        f"Преобразователь: <b>{escape_html(drive_name)}</b>\n"
         f"Тип: <b>{escape_html(category_name)}</b>\n\n"
         f"Теперь отправь код сообщением.\n"
         f"Можно ввести полный код: <code>{prefix}01006</code>\n"
@@ -270,7 +270,7 @@ async def cb_repeat(callback: CallbackQuery, state: FSMContext) -> None:
     category_key = data.get("category_key")
 
     if not drive_key or not category_key:
-        await callback.answer("Сначала выбери ЧП и тип события", show_alert=True)
+        await callback.answer("Сначала выбери преобразователь и тип события", show_alert=True)
         return
 
     drive_name = catalog.get_drive_name(drive_key)
@@ -278,7 +278,7 @@ async def cb_repeat(callback: CallbackQuery, state: FSMContext) -> None:
     prefix = catalog.get_category_prefix(drive_key, category_key)
     await state.set_state(LookupStates.waiting_for_code)
     await callback.message.answer(
-        f"ЧП: <b>{escape_html(drive_name)}</b>\n"
+        f"Преобразователь: <b>{escape_html(drive_name)}</b>\n"
         f"Тип: <b>{escape_html(category_name)}</b>\n\n"
         f"Введи следующий код. Например: <code>{prefix}01006</code> или <code>1006</code>",
     )
@@ -321,7 +321,7 @@ async def process_code(message: Message, state: FSMContext) -> None:
 
 @router.message()
 async def fallback_handler(message: Message) -> None:
-    await message.answer("Используй /start, чтобы открыть меню справочника ошибок ЧП.")
+    await message.answer("Используй /start, чтобы открыть меню справочника ошибок преобразователей.")
 
 
 async def main() -> None:
