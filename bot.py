@@ -17,8 +17,14 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup, Message
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from dotenv import load_dotenv
 
+# Как добавить новый преобразователь:
+# 1. Положи новый *.json файл в папку data/
+# 2. Внутри файла используй структуру {"drives": {"your_drive_key": {...}}}
+# 3. Бот сам подхватит новый преобразователь и покажет его в меню
+# Пример: data/simovert_masterdrives_vc.json
+
 BASE_DIR = Path(__file__).resolve().parent
-DATA_FILE = BASE_DIR / "data" / "errors.json"
+DATA_DIR = BASE_DIR / "data"
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
@@ -36,9 +42,43 @@ class ErrorCatalog:
         self.drives = data.get("drives", {})
 
     @classmethod
-    def from_file(cls, path: Path) -> "ErrorCatalog":
-        with path.open("r", encoding="utf-8") as f:
-            return cls(json.load(f))
+    def from_directory(cls, path: Path) -> "ErrorCatalog":
+        merged: dict[str, Any] = {"drives": {}}
+
+        if not path.exists():
+            return cls(merged)
+
+        for json_path in sorted(path.glob("*.json")):
+            with json_path.open("r", encoding="utf-8") as f:
+                chunk = json.load(f)
+
+            for drive_key, drive_payload in chunk.get("drives", {}).items():
+                if drive_key not in merged["drives"]:
+                    merged["drives"][drive_key] = drive_payload
+                    continue
+
+                target_drive = merged["drives"][drive_key]
+                if drive_payload.get("name"):
+                    target_drive["name"] = drive_payload["name"]
+
+                target_categories = target_drive.setdefault("categories", {})
+                source_categories = drive_payload.get("categories", {})
+
+                for category_key, category_payload in source_categories.items():
+                    if category_key not in target_categories:
+                        target_categories[category_key] = category_payload
+                        continue
+
+                    target_category = target_categories[category_key]
+                    if category_payload.get("name"):
+                        target_category["name"] = category_payload["name"]
+                    if category_payload.get("prefix"):
+                        target_category["prefix"] = category_payload["prefix"]
+
+                    target_items = target_category.setdefault("items", {})
+                    target_items.update(category_payload.get("items", {}))
+
+        return cls(merged)
 
     def drive_exists(self, drive_key: str) -> bool:
         return drive_key in self.drives
@@ -98,7 +138,7 @@ class ErrorCatalog:
         return digits.lstrip("0") or "0"
 
 
-catalog = ErrorCatalog.from_file(DATA_FILE)
+catalog = ErrorCatalog.from_directory(DATA_DIR)
 
 
 def drives_keyboard() -> InlineKeyboardMarkup:
@@ -176,7 +216,7 @@ async def show_main_menu(target: Message | CallbackQuery, state: FSMContext) -> 
         "2. Выбери тип события: Alarm или Fault\n"
         "3. Введи код вручную\n\n"
         "После выбора типа можно вводить либо полный код (<code>A01006</code>), "
-        "либо только цифры (<code>1006</code>).\n\n"
+        "либо только цифры (<code>1006</code>)."
     )
 
     if isinstance(target, Message):
@@ -256,8 +296,8 @@ async def cb_select_category(callback: CallbackQuery, state: FSMContext) -> None
         f"Преобразователь: <b>{escape_html(drive_name)}</b>\n"
         f"Тип: <b>{escape_html(category_name)}</b>\n\n"
         f"Теперь отправь код сообщением.\n"
-        f"Можно ввести полный код: <code>{prefix}01006</code>\n"
-        f"Или только цифры: <code>1006</code>",
+        f"Можно ввести полный код: <code>{prefix}001</code>\n"
+        f"Или только цифры: <code>1</code>",
         reply_markup=result_keyboard(drive_key),
     )
     await callback.answer()
@@ -280,7 +320,7 @@ async def cb_repeat(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.answer(
         f"Преобразователь: <b>{escape_html(drive_name)}</b>\n"
         f"Тип: <b>{escape_html(category_name)}</b>\n\n"
-        f"Введи следующий код. Например: <code>{prefix}01006</code> или <code>1006</code>",
+        f"Введи следующий код. Например: <code>{prefix}001</code> или <code>1</code>",
     )
     await callback.answer()
 
@@ -298,7 +338,7 @@ async def process_code(message: Message, state: FSMContext) -> None:
 
     user_code = (message.text or "").strip()
     if not user_code:
-        await message.answer("Отправь текстовый код ошибки, например <code>A01006</code> или <code>1006</code>.")
+        await message.answer("Отправь текстовый код ошибки, например <code>A001</code> или <code>1</code>.")
         return
 
     drive_name = catalog.get_drive_name(drive_key)
