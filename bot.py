@@ -243,7 +243,6 @@ async def show_main_menu(target: Message | CallbackQuery, state: FSMContext) -> 
         "1. Выбери преобразователь\n"
         "2. Выбери тип события: Alarm или Fault\n"
         "3. Введи код вручную\n\n"
-        "Примеры ввода зависят от выбранного преобразователя."
     )
 
     if isinstance(target, Message):
