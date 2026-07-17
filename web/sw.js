@@ -1,4 +1,4 @@
-const CACHE='drive-errors-v9';
+const CACHE='drive-errors-v10';
 const APP_SHELL=['./','./index.html','./styles.css','./mascot.css','./app.js','./manifest.webmanifest','./catalog.json','./assets/app-icon.svg','./assets/capy_1.png','./assets/capy_2.png','./assets/capy_3.png','./assets/capy_4.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
