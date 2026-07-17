@@ -4,3 +4,8 @@ __pycache__/
 .env
 .vscode/
 .idea/
+node_modules/
+android/
+web/catalog.json
+*.apk
+.gradle/
