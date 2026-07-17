@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Капибара АСУТП">
+<rect width="512" height="512" rx="112" fill="#fff3d6"/>
+<circle cx="158" cy="154" r="58" fill="#8a5428"/><circle cx="354" cy="154" r="58" fill="#8a5428"/>
+<path d="M100 292c0-112 70-190 156-190s156 78 156 190c0 92-61 146-156 146S100 384 100 292Z" fill="#a96b36"/>
+<ellipse cx="256" cy="318" rx="116" ry="82" fill="#d9a368"/>
+<circle cx="200" cy="245" r="18" fill="#2d2118"/><circle cx="312" cy="245" r="18" fill="#2d2118"/>
+<ellipse cx="256" cy="302" rx="31" ry="24" fill="#2d2118"/>
+<path d="M256 324v26m-49 3c28 24 70 24 98 0" fill="none" stroke="#2d2118" stroke-width="14" stroke-linecap="round"/>
+<path d="M378 80l14 28 31 5-23 22 6 31-28-15-28 15 6-31-23-22 31-5Z" fill="#f39a18"/>
+</svg>
