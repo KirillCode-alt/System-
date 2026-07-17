@@ -1,0 +1,81 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "web/**"
+      - "data/**"
+      - "scripts/build_web_catalog.py"
+      - "assets/**"
+      - "package.json"
+      - "capacitor.config.json"
+      - ".github/workflows/android-apk.yml"
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "data/**"
+      - "scripts/build_web_catalog.py"
+      - "assets/**"
+      - "package.json"
+      - "capacitor.config.json"
+      - ".github/workflows/android-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build offline error catalog
+        run: python scripts/build_web_catalog.py
+
+      - name: Install Capacitor
+        run: npm install --no-audit --no-fund
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Copy web app into Android
+        run: npx cap sync android
+
+      - name: Generate Android icon and splash screen
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#fff3d6' --iconBackgroundColorDark '#2d2118' --splashBackgroundColor '#fff8ec' --splashBackgroundColorDark '#2d2118'
+
+      - name: Build APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: drive-errors-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30

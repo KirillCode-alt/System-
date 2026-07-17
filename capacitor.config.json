@@ -1,0 +1,9 @@
+{
+  "appId": "kz.kirillcode.driveerrors",
+  "appName": "Ошибки ЧП",
+  "webDir": "web",
+  "android": {
+    "backgroundColor": "#fff8ec",
+    "allowMixedContent": false
+  }
+}
