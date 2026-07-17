@@ -1,1 +1,29 @@
-{"name":"Справочник ошибок ЧП","short_name":"Ошибки ЧП","description":"Мобильный справочник ошибок частотных преобразователей","start_url":"./","scope":"./","display":"standalone","background_color":"#fff7e8","theme_color":"#f7ecd8","lang":"ru"}
+{
+  "id": "./",
+  "name": "Справочник ошибок частотных преобразователей",
+  "short_name": "Ошибки ЧП",
+  "description": "Мобильный справочник ошибок частотных преобразователей",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "orientation": "portrait-primary",
+  "background_color": "#fff8ec",
+  "theme_color": "#fff8ec",
+  "lang": "ru",
+  "categories": [
+    "utilities",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "./assets/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
